@@ -1,6 +1,7 @@
 package test;
 
 import main.Board;
+import main.Mark;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -53,7 +54,7 @@ public class BoardTest {
     }
 
     @Test
-    public void check_game_is_finished_no_winner(){
+    public void check_game_is_finished_with_no_winner(){
         Board board = new Board();
         board.markAsXAt(1, 1);
         board.markAsOAt(1, 2);
@@ -98,4 +99,27 @@ public class BoardTest {
         Assertions.assertEquals(true, board.isFinished());
     }
 
+    @Test
+    public void check_winner(){
+        Board board = new Board();
+        board.markAsXAt(1,1);
+        board.markAsOAt(2,1);
+        board.markAsXAt(2, 2);
+        board.markAsOAt(3,1);
+        board.markAsXAt(3, 3);
+
+        Assertions.assertEquals(Mark.X, board.winner());
+    }
+
+    @Test
+    public void check_there_is_no_winner(){
+        Board board = new Board();
+        board.markAsXAt(1,1);
+        board.markAsOAt(2,1);
+        board.markAsXAt(2, 3);
+        board.markAsOAt(3,1);
+        board.markAsXAt(3, 3);
+
+        Assertions.assertEquals(Mark.BLANK, board.winner());
+    }
 }

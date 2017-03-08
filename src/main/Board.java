@@ -25,14 +25,14 @@ public class Board {
         }*/
 
         this.cells = IntStream.range(0, ROWS) //creamos a manija un stream de ints de 0->3 (idem a un bucle for)
-                .mapToObj(row -> initColumns()) //por cada row, inicializa las columnas
-                .toArray(Cell[][]::new); //incializa la matriz de celdas
+                .mapToObj(rowNum -> initColumns()) //por cada row, inicializa las columnas
+                .toArray(Cell[][]::new); //inicializa la matriz de celdas
     }
 
     private Cell[] initColumns() {
         //idem al initialize, pero en lugar de con una matriz, con un vector
         return IntStream.range(0, COLUMNS)
-                .mapToObj(c -> new Cell())
+                .mapToObj(colNum -> new Cell())
                 .toArray(Cell[]::new);
     }
 
@@ -68,14 +68,44 @@ public class Board {
     }
 
     public boolean isFinished() {
-        return allCellsMarked() || hasAnyWinnerRow() || hasAnyWinnerColumn();
+        return allCellsMarked()
+                || hasAnyWinnerRow()
+                || hasAnyWinnerColumn()
+                || hasAnyWinnerDiagonal();
+    }
+
+    private boolean allCellsMarked() {
+        return Stream.of(cells)
+                .parallel()
+                .flatMap(Stream::of) //aplanamos todas las filas en un stream (row -> Stream.of(row))
+                .allMatch(Cell::isMarked); //y si todas estan marcadas, fin de la partida
+    }
+
+    private boolean hasAnyWinnerRow() {
+        return hasAnyWinnerRow(this.cells);
     }
 
     private boolean hasAnyWinnerColumn() {
-        return hasAnyWinnerRow(transposeCells());
+        return hasAnyWinnerRow(transpose());
     }
 
-    private Cell[][] transposeCells() {
+    private boolean hasAnyWinnerDiagonal() {
+        return hasAnyWinnerRow(extractDiagonals());
+    }
+
+    private boolean hasAnyWinnerRow(Cell[][] cells) {
+        return Stream.of(cells)
+                .anyMatch(this::isWinnerRow);
+    }
+
+    public boolean isWinnerRow(Cell[] row) {
+        //hay algo mejor que un or?????
+
+        return Stream.of(row).allMatch(Cell::isMarkedAsX) ||
+                Stream.of(row).allMatch(Cell::isMarkedAsO);
+    }
+
+    private Cell[][] transpose() {
         /*
         Cell[][] transposedCells = new Cell[ROWS][COLUMNS];
         for(int i = 0; i < ROWS; i ++) {
@@ -93,25 +123,21 @@ public class Board {
                 .toArray(Cell[][]::new);
     }
 
-    private boolean allCellsMarked() {
-        return Stream.of(cells)
-                .parallel()
-                .flatMap(Stream::of) //aplanamos todas las filas en un stream (row -> Stream.of(row))
-                .allMatch(Cell::isMarked); //y si todas estan marcadas, fin de la partida
+    private Cell[][] extractDiagonals() {
+        Cell[][] diagonals = new Cell[2][3];
+
+        diagonals[0][0] = this.cells[0][0];
+        diagonals[0][1] = this.cells[1][1];
+        diagonals[0][2] = this.cells[2][2];
+
+        diagonals[1][0] = this.cells[0][2];
+        diagonals[1][1] = this.cells[1][1];
+        diagonals[1][2] = this.cells[2][0];
+
+        return diagonals;
     }
 
-    private boolean hasAnyWinnerRow() {
-        return hasAnyWinnerRow(this.cells);
+    public Mark winner() {
+        return null;
     }
-
-    private boolean hasAnyWinnerRow(Cell[][] cells) {
-        return Stream.of(cells)
-                .anyMatch(this::isWinnerRow);
-    }
-
-    public boolean isWinnerRow(Cell[] row) {
-        return Stream.of(row).allMatch(Cell::isMarkedAsX) ||
-            Stream.of(row).allMatch(Cell::isMarkedAsO);
-    }
-
 }
